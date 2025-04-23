@@ -26,18 +26,20 @@
     <hr>
 
     <!-- Formulář pro výběr až 20 hráčů -->
-    <h3>Select Players (up to 20)</h3>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="selected_players" class="form-label">Select Players:</label>
-            <select name="selected_players" class="form-select" multiple required size="20">
-                {% for player, skill in players.items() %}
-                <option value="{{ player }}">{{ player }} ({{ skill }})</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Create Teams</button>
-    </form>
+        <h3>Select Players (1 to 20 players)</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="selected_players" class="form-label">Select Players:</label>
+                <select name="selected_players" class="form-select" multiple required size="20">
+                    <option value="">Select players (between 1 and 20)</option>
+                    {% for player, skill in players.items() %}
+                    <option value="{{ player }}">{{ player }} ({{ skill }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Teams</button>
+        </form>
+
 
     <hr>
 
