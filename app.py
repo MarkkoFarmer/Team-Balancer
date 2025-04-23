@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 import json
 import random
 import os
@@ -62,6 +62,36 @@ def index():
         return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
 
     return render_template("index.html", team1=[], team2=[], players=players, goalkeepers=goalkeepers)
+
+
+@app.route("/add_player", methods=["GET", "POST"])
+def add_player():
+    data = load_players()
+    players = data["players"]
+    goalkeepers = data["goalkeepers"]
+
+    if request.method == "POST":
+        player_name = request.form["player_name"]
+        player_skill = int(request.form["player_skill"])
+        players[player_name] = player_skill
+        save_players({"players": players, "goalkeepers": goalkeepers})
+        return redirect(url_for("index"))
+
+    return render_template("add_player.html", players=players)
+
+
+@app.route("/remove_player", methods=["POST"])
+def remove_player():
+    data = load_players()
+    players = data["players"]
+    goalkeepers = data["goalkeepers"]
+
+    player_name = request.form["player_name"]
+    if player_name in players:
+        del players[player_name]
+        save_players({"players": players, "goalkeepers": goalkeepers})
+
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
