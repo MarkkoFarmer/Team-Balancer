@@ -9,31 +9,42 @@
 <div class="container">
     <h1 class="mb-4 text-center">Team Balancer</h1>
 
-    <h3>New Players</h3>
-<input type="text" name="new_player_name" placeholder="Player Name" required>
-<input type="number" name="new_player_skill" placeholder="Skill (1-10)" required>
-<button type="submit">Add Player</button>
+    <!-- Formulář pro přidání nových hráčů -->
+    <h3>Add New Players</h3>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="new_player_name" class="form-label">Player Name:</label>
+            <input type="text" name="new_player_name" class="form-control" placeholder="Player Name" required>
+        </div>
+        <div class="mb-3">
+            <label for="new_player_skill" class="form-label">Player Skill (1-10):</label>
+            <input type="number" name="new_player_skill" class="form-control" min="1" max="10" placeholder="Skill" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Player</button>
+    </form>
 
+    <hr>
+
+    <!-- Formulář pro výběr až 20 hráčů -->
+    <h3>Select Players (up to 20)</h3>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="selected_players" class="form-label">Select Players:</label>
+            <select name="selected_players" class="form-select" multiple required size="20">
+                {% for player, skill in players.items() %}
+                <option value="{{ player }}">{{ player }} ({{ skill }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Teams</button>
+    </form>
+
+    <hr>
+
+    <!-- Formulář pro přidání nových brankářů -->
+    <h3>Goalkeepers</h3>
     <form method="POST">
         <div class="row mb-4">
-            <h3>Players</h3>
-            {% for i in range(10) %}
-            <div class="col-md-6 mb-2">
-                <select name="player_name" class="form-select" required>
-                    <option value="">Select player</option>
-                    {% for name in players %}
-                    <option value="{{ name }}">{{ name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2 mb-2">
-                <input type="number" name="player_skill" min="1" max="10" class="form-control" placeholder="Skill" required>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="row mb-4">
-            <h3>Goalkeepers</h3>
             {% for i in range(2) %}
             <div class="col-md-6 mb-2">
                 <select name="gk_name" class="form-select" required>
@@ -48,12 +59,12 @@
             </div>
             {% endfor %}
         </div>
-
         <button type="submit" class="btn btn-primary">Generate Teams</button>
     </form>
 
     <hr>
 
+    <!-- Formulář pro odstranění hráče -->
     <h3>Remove Player</h3>
     <form method="POST" action="{{ url_for('remove_player') }}">
         <div class="mb-3">
@@ -67,6 +78,9 @@
         <button type="submit" class="btn btn-danger">Remove Player</button>
     </form>
 
+    <hr>
+
+    <!-- Zobrazení výsledků po generování týmů -->
     {% if team1 %}
     <div class="row mt-5">
         <div class="col-md-6">
