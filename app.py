@@ -11,13 +11,20 @@ DATA_FILE = 'players.json'
 def load_players():
     if not os.path.exists(DATA_FILE):
         return {"players": {}, "goalkeepers": {}}
-    with open(DATA_FILE, 'r') as f:
-        return json.load(f)
+    try:
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading players data: {e}")
+        return {"players": {}, "goalkeepers": {}}
 
 
 def save_players(data):
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=4)
+    try:
+        with open(DATA_FILE, 'w') as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        print(f"Error saving players data: {e}")
 
 
 def balance_teams(players, goalkeepers):
@@ -34,7 +41,6 @@ def balance_teams(players, goalkeepers):
             team2.append((name, skill))
             skill2 += skill
 
-    # pick goalies
     gk = list(goalkeepers.items())
     random.shuffle(gk)
     team1.append(("Goalkeeper: " + gk[0][0], gk[0][1]))
@@ -45,53 +51,72 @@ def balance_teams(players, goalkeepers):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    data = load_players()
-    players = data["players"]
-    goalkeepers = data["goalkeepers"]
+    try:
+        data = load_players()
+        players = data["players"]
+        goalkeepers = data["goalkeepers"]
+    except Exception as e:
+        print(f"Error in index route: {e}")
+        players = goalkeepers = {}
 
     if request.method == "POST":
-        new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
-        new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
+        try:
+            new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
+            new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
 
-        # update JSON
-        players.update(new_players)
-        goalkeepers.update(new_goalies)
-        save_players({"players": players, "goalkeepers": goalkeepers})
+            players.update(new_players)
+            goalkeepers.update(new_goalies)
+            save_players({"players": players, "goalkeepers": goalkeepers})
 
-        team1, team2 = balance_teams(new_players, new_goalies)
-        return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
+            team1, team2 = balance_teams(players, goalkeepers)
+            return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
+        except Exception as e:
+            print(f"Error processing form data: {e}")
+            return "Error processing the form data", 500
 
     return render_template("index.html", team1=[], team2=[], players=players, goalkeepers=goalkeepers)
 
 
 @app.route("/add_player", methods=["GET", "POST"])
 def add_player():
-    data = load_players()
-    players = data["players"]
-    goalkeepers = data["goalkeepers"]
+    try:
+        data = load_players()
+        players = data["players"]
+        goalkeepers = data["goalkeepers"]
+    except Exception as e:
+        print(f"Error in add_player route: {e}")
+        players = goalkeepers = {}
 
     if request.method == "POST":
-        player_name = request.form["player_name"]
-        player_skill = int(request.form["player_skill"])
-        players[player_name] = player_skill
-        save_players({"players": players, "goalkeepers": goalkeepers})
-        return redirect(url_for("index"))
+        try:
+            player_name = request.form["player_name"]
+            player_skill = int(request.form["player_skill"])
+            players[player_name] = player_skill
+            save_players({"players": players, "goalkeepers": goalkeepers})
+            return redirect(url_for("index"))
+        except Exception as e:
+            print(f"Error adding player: {e}")
+            return "Error adding the player", 500
 
     return render_template("add_player.html", players=players)
 
 
 @app.route("/remove_player", methods=["POST"])
 def remove_player():
-    data = load_players()
-    players = data["players"]
-    goalkeepers = data["goalkeepers"]
+    try:
+        data = load_players()
+        players = data["players"]
+        goalkeepers = data["goalkeepers"]
 
-    player_name = request.form["player_name"]
-    if player_name in players:
-        del players[player_name]
-        save_players({"players": players, "goalkeepers": goalkeepers})
+        player_name = request.form["player_name"]
+        if player_name in players:
+            del players[player_name]
+            save_players({"players": players, "goalkeepers": goalkeepers})
 
-    return redirect(url_for("index"))
+        return redirect(url_for("index"))
+    except Exception as e:
+        print(f"Error removing player: {e}")
+        return "Error removing the player", 500
 
 
 if __name__ == "__main__":
