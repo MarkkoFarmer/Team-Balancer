@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 DATA_FILE = 'players.json'
 
-
+# Načítání a ukládání hráčů do souboru
 def load_players():
     if not os.path.exists(DATA_FILE):
         return {"players": {}, "goalkeepers": {}}
@@ -18,7 +18,6 @@ def load_players():
         print(f"Error loading players data: {e}")
         return {"players": {}, "goalkeepers": {}}
 
-
 def save_players(data):
     try:
         with open(DATA_FILE, 'w') as f:
@@ -26,7 +25,7 @@ def save_players(data):
     except Exception as e:
         print(f"Error saving players data: {e}")
 
-
+# Funkce pro vyvážení týmů
 def balance_teams(players, goalkeepers):
     all_players = list(players.items())
     random.shuffle(all_players)
@@ -48,7 +47,6 @@ def balance_teams(players, goalkeepers):
 
     return team1, team2
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     try:
@@ -61,21 +59,33 @@ def index():
 
     if request.method == "POST":
         try:
-            new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
-            new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
+            # Přidání nových hráčů
+            if "new_player_name" in request.form:
+                new_players = dict(zip(request.form.getlist("new_player_name"), map(int, request.form.getlist("new_player_skill"))))
+                players.update(new_players)
+                save_players({"players": players, "goalkeepers": goalkeepers})
 
-            players.update(new_players)
-            goalkeepers.update(new_goalies)
-            save_players({"players": players, "goalkeepers": goalkeepers})
+            # Přidání nových brankářů
+            if "gk_name" in request.form:
+                new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
+                goalkeepers.update(new_goalies)
+                save_players({"players": players, "goalkeepers": goalkeepers})
 
-            team1, team2 = balance_teams(players, goalkeepers)
+            # Výběr hráčů pro týmy
+            selected_players = request.form.getlist("selected_players")
+
+            if len(selected_players) != 20:
+                return "Please select exactly 20 players", 400
+
+            selected_players_dict = {player: players[player] for player in selected_players}
+            team1, team2 = balance_teams(selected_players_dict, goalkeepers)
+
             return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
         except Exception as e:
             print(f"Error processing form data: {e}")
             return "Error processing the form data", 500
 
     return render_template("index.html", team1=[], team2=[], players=players, goalkeepers=goalkeepers)
-
 
 @app.route("/add_player", methods=["GET", "POST"])
 def add_player():
@@ -100,7 +110,6 @@ def add_player():
 
     return render_template("add_player.html", players=players)
 
-
 @app.route("/remove_player", methods=["POST"])
 def remove_player():
     try:
@@ -117,7 +126,6 @@ def remove_player():
     except Exception as e:
         print(f"Error removing player: {e}")
         return "Error removing the player", 500
-
 
 if __name__ == "__main__":
     app.run(debug=True)
