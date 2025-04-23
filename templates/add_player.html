@@ -7,19 +7,24 @@
 </head>
 <body class="bg-light p-5">
 <div class="container">
-    <h1 class="mb-4 text-center">Add New Player</h1>
-
+    <h1 class="mb-4 text-center">Add Player</h1>
+    
     <form method="POST">
         <div class="mb-3">
             <label for="player_name" class="form-label">Player Name</label>
-            <input type="text" name="player_name" class="form-control" id="player_name" required>
+            <input type="text" class="form-control" id="player_name" name="player_name" required>
         </div>
         <div class="mb-3">
-            <label for="player_skill" class="form-label">Player Skill (1 to 10)</label>
-            <input type="number" name="player_skill" class="form-control" id="player_skill" min="1" max="10" required>
+            <label for="player_skill" class="form-label">Player Skill (1-10)</label>
+            <input type="number" class="form-control" id="player_skill" name="player_skill" min="1" max="10" required>
         </div>
         <button type="submit" class="btn btn-primary">Add Player</button>
     </form>
+    
+    <hr>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Teams</a>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
