@@ -47,6 +47,21 @@
         <button type="submit" class="btn btn-primary">Generate Teams</button>
     </form>
 
+    <hr>
+
+    <h3>Remove Player</h3>
+    <form method="POST" action="{{ url_for('remove_player') }}">
+        <div class="mb-3">
+            <select name="player_name" class="form-select" required>
+                <option value="">Select player to remove</option>
+                {% for name in players %}
+                <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-danger">Remove Player</button>
+    </form>
+
     {% if team1 %}
     <div class="row mt-5">
         <div class="col-md-6">
