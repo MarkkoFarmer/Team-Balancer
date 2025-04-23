@@ -1,77 +1,68 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, redirect
+import json
 import random
-import io
-from itertools import combinations
+import os
 
 app = Flask(__name__)
 
-def find_best_teams(players, goalkeepers):
-    best_diff = float('inf')
-    best_team1 = []
-    best_team2 = []
-    best_gk1 = None
-    best_gk2 = None
+DATA_FILE = 'players.json'
 
-    field_combinations = list(combinations(players, 10))
-    random.shuffle(field_combinations)
 
-    for team1 in field_combinations[:1000]:
-        team2 = [p for p in players if p not in team1]
-        team1_skill = sum(p['skill'] for p in team1)
-        team2_skill = sum(p['skill'] for p in team2)
+def load_players():
+    if not os.path.exists(DATA_FILE):
+        return {"players": {}, "goalkeepers": {}}
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
 
-        for gk1, gk2 in [(goalkeepers[0], goalkeepers[1]), (goalkeepers[1], goalkeepers[0])]:
-            total1 = team1_skill + gk1['skill']
-            total2 = team2_skill + gk2['skill']
-            diff = abs(total1 - total2)
 
-            if diff < best_diff:
-                best_diff = diff
-                best_team1 = team1
-                best_team2 = team2
-                best_gk1 = gk1
-                best_gk2 = gk2
+def save_players(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
-    return (best_team1, best_gk1, best_team2, best_gk2, best_diff)
 
-@app.route('/', methods=['GET', 'POST'])
+def balance_teams(players, goalkeepers):
+    all_players = list(players.items())
+    random.shuffle(all_players)
+    team1, team2 = [], []
+    skill1, skill2 = 0, 0
+
+    for name, skill in all_players:
+        if len(team1) < 9 and (skill1 <= skill2 or len(team2) >= 9):
+            team1.append((name, skill))
+            skill1 += skill
+        else:
+            team2.append((name, skill))
+            skill2 += skill
+
+    # pick goalies
+    gk = list(goalkeepers.items())
+    random.shuffle(gk)
+    team1.append(("Goalkeeper: " + gk[0][0], gk[0][1]))
+    team2.append(("Goalkeeper: " + gk[1][0], gk[1][1]))
+
+    return team1, team2
+
+
+@app.route("/", methods=["GET", "POST"])
 def index():
-    result = None
-    if request.method == 'POST':
-        players = []
-        goalkeepers = []
+    data = load_players()
+    players = data["players"]
+    goalkeepers = data["goalkeepers"]
 
-        try:
-            for i in range(20):
-                name = request.form[f'name_{i}'].strip()
-                skill = int(request.form[f'skill_{i}'])
-                players.append({'name': name, 'skill': skill})
+    if request.method == "POST":
+        new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
+        new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
 
-            for i in range(2):
-                name = request.form[f'gk_name_{i}'].strip()
-                skill = int(request.form[f'gk_skill_{i}'])
-                goalkeepers.append({'name': name, 'skill': skill})
+        # update JSON
+        players.update(new_players)
+        goalkeepers.update(new_goalies)
+        save_players({"players": players, "goalkeepers": goalkeepers})
 
-            best_team = find_best_teams(players, goalkeepers)
-            result = {
-                'team1': best_team[0],
-                'gk1': best_team[1],
-                'team2': best_team[2],
-                'gk2': best_team[3],
-                'diff': best_team[4]
-            }
-        except Exception as e:
-            result = {'error': str(e)}
+        team1, team2 = balance_teams(new_players, new_goalies)
+        return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
 
-    return render_template('index.html', result=result)
+    return render_template("index.html", team1=[], team2=[], players=players, goalkeepers=goalkeepers)
 
-@app.route('/download', methods=['POST'])
-def download():
-    team_data = request.form['export_data']
-    file_stream = io.BytesIO()
-    file_stream.write(team_data.encode('utf-8'))
-    file_stream.seek(0)
-    return send_file(file_stream, as_attachment=True, download_name="sestava.txt")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
