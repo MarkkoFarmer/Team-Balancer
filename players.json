@@ -1,4 +1,10 @@
 {
-  "goalkeepers": {},
-  "players": {}
+    "players": {
+        "Player1": 7,
+        "Player2": 8
+    },
+    "goalkeepers": {
+        "GK1": 9,
+        "GK2": 6
+    }
 }
