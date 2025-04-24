@@ -48,7 +48,9 @@
             </div>
         </div>
         <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary">Generovat týmy</button>
+            <form method="POST" action="{{ url_for('index') }}">
+                  <button type="submit" class="btn btn-primary mt-3">Generovat týmy</button>
+            </form>
         </div>
     </form>
 
