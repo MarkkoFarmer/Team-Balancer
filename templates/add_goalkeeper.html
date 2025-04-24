@@ -1,27 +1,28 @@
+<!-- add_goalkeeper.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Goalkeepers</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        form { display: flex; flex-wrap: wrap; gap: 10px; max-width: 100%; }
+        .gk-input { flex: 1 1 calc(50% - 10px); box-sizing: border-box; min-width: 150px; }
+        input[type="text"] { width: 100%; padding: 5px; }
+        input[type="submit"] { margin-top: 20px; padding: 10px 20px; }
+    </style>
 </head>
-<body class="bg-light p-5">
-<div class="container">
-    <h1 class="text-center mb-4">Add New Goalkeepers (Up to 2)</h1>
-    <form method="POST">
-        <div class="row">
-            {% for i in range(2) %}
-            <div class="col-md-6 mb-3 d-flex align-items-end">
-                <input type="text" name="gk_name_{{ i }}" class="form-control me-2" placeholder="Goalkeeper Name">
-                <input type="number" name="gk_skill_{{ i }}" class="form-control" placeholder="Skill (1-10)" min="1" max="10">
-            </div>
-            {% endfor %}
+<body>
+    <h1>Add Goalkeepers</h1>
+    <form method="post">
+        {% for i in range(2) %}
+        <div class="gk-input">
+            <input type="text" name="name_{{i}}" placeholder="Goalkeeper Name {{i+1}}">
+            <input type="text" name="skill_{{i}}" placeholder="Skill (e.g. 7.5)">
         </div>
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success">Add Goalkeepers</button>
-            <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Back</a>
-        </div>
+        {% endfor %}
+        <input type="submit" value="Save Goalkeepers">
     </form>
-</div>
 </body>
 </html>
