@@ -1,33 +1,27 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Přidat hráče</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Přidat Hráče</title>
 </head>
 <body>
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Přidat hráče nebo brankáře</h2>
-    <form method="POST" class="mx-auto" style="max-width: 400px;">
-        <div class="mb-3">
-            <label for="name" class="form-label">Jméno</label>
-            <input type="text" name="name" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="skill" class="form-label">Skill (např. 7,5 nebo 7.5)</label>
-            <input type="text" name="skill" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="role" class="form-label">Role</label>
-            <select name="role" class="form-select" required>
-                <option value="player">Hráč</option>
-                <option value="goalkeeper">Brankář</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-success w-100">Přidat</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary w-100 mt-2">Zpět</a>
+    <h1>Přidat Nového Hráče</h1>
+
+    <form method="POST">
+        <label for="name">Jméno:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="skill">Schopnost:</label>
+        <input type="number" id="skill" name="skill" step="0.1" required><br>
+
+        <label for="role">Role:</label>
+        <select id="role" name="role">
+            <option value="player">Hráč</option>
+            <option value="goalkeeper">Brankář</option>
+        </select><br>
+
+        <button type="submit">Přidat</button>
     </form>
-</div>
 </body>
 </html>
