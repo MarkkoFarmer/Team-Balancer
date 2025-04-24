@@ -1,79 +1,49 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generátor týmů</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="container mt-4">
-    <h1 class="text-center mb-4">Generování týmů</h1>
+    <h1>Generování Týmů</h1>
 
-    <div class="d-flex justify-content-center mb-4">
-        <a href="{{ url_for('add_player') }}" class="btn btn-success">Přidat hráče nebo brankáře</a>
-    </div>
+    <form method="POST">
+        <h2>Hráči</h2>
+        {% for player in players %}
+            <div>
+                <input type="checkbox" name="selected_players" value="{{ player.name }}">
+                <label>{{ player.name }} (Skill: {{ "%.2f"|format(player.skill) }})</label>
+            </div>
+        {% endfor %}
 
-    <form method="POST" action="{{ url_for('generate_teams') }}">
-        <div class="row">
-            <div class="col-md-6">
-                <h4>Hráči</h4>
-                {% for name, skill in players.items() %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <input class="form-check-input me-1" type="checkbox" name="selected_players" value="{{ name }}"
-                                   {% if name in selected_players %}checked{% endif %}>
-                            <label class="form-check-label">{{ name }} (Skill: {{ "%.2f"|format(skill) }})</label>
-                        </div>
-                        <form method="POST" action="{{ url_for('delete_player', role='player', name=name) }}">
-                            <button class="btn btn-danger btn-sm">Smazat</button>
-                        </form>
-                    </div>
-                {% endfor %}
+        <h2>Brankáři</h2>
+        {% for goalkeeper in goalkeepers %}
+            <div>
+                <input type="checkbox" name="selected_goalkeepers" value="{{ goalkeeper.name }}">
+                <label>{{ goalkeeper.name }} (Skill: {{ "%.2f"|format(goalkeeper.skill) }})</label>
             </div>
-            <div class="col-md-6">
-                <h4>Brankáři</h4>
-                {% for name, skill in goalkeepers.items() %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <input class="form-check-input me-1" type="checkbox" name="selected_goalkeepers" value="{{ name }}"
-                                   {% if name in selected_goalkeepers %}checked{% endif %}>
-                            <label class="form-check-label">{{ name }} (Skill: {{ "%.2f"|format(skill) }})</label>
-                        </div>
-                        <form method="POST" action="{{ url_for('delete_player', role='goalkeeper', name=name) }}">
-                            <button class="btn btn-danger btn-sm">Smazat</button>
-                        </form>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <form method="POST" action="{{ url_for('index') }}">
-                  <button type="submit" class="btn btn-primary mt-3">Generovat týmy</button>
-            </form>
-        </div>
+        {% endfor %}
+
+        <button type="submit">Generuj Týmy</button>
     </form>
 
-    {% if team1 and team2 %}
-        <div class="row mt-5">
-            <div class="col-md-6">
-                <h4>Tým 1</h4>
-                <ul class="list-group">
-                    {% for name, skill in team1 %}
-                        <li class="list-group-item">{{ name }} (Skill: {{ "%.2f"|format(skill) }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h4>Tým 2</h4>
-                <ul class="list-group">
-                    {% for name, skill in team2 %}
-                        <li class="list-group-item">{{ name }} (Skill: {{ "%.2f"|format(skill) }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+    {% if team1 %}
+        <h2>Tým 1</h2>
+        <ul>
+            {% for player in team1 %}
+                <li>{{ player[0] }} (Skill: {{ "%.2f"|format(player[1]) }})</li>
+            {% endfor %}
+        </ul>
     {% endif %}
-</div>
+
+    {% if team2 %}
+        <h2>Tým 2</h2>
+        <ul>
+            {% for player in team2 %}
+                <li>{{ player[0] }} (Skill: {{ "%.2f"|format(player[1]) }})</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>
