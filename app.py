@@ -66,6 +66,17 @@ def delete_player(role, name):
     save_data()
     return redirect(url_for("index"))
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        # Zpracování dat z formuláře
+        # Generování týmů
+        return render_template('index.html', ...)
+    else:
+        # Zobrazení prázdného formuláře
+        return render_template('index.html', ...)
+
+
 @app.route("/generate_teams", methods=["POST"])
 def generate_teams():
     global selected_players, selected_goalkeepers
