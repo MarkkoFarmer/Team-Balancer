@@ -1,94 +1,90 @@
-from flask import Flask, render_template, request, redirect, url_for
-import json
 import os
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 
+# Nastavení aplikace
 app = Flask(__name__)
 
-DATA_FILE = "players.json"
+# Připojení k PostgreSQL databázi (tuto URL nastavíš na Renderu)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')  # Nastavení pro Render
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-players = {}
-goalkeepers = {}
-selected_players = []
-selected_goalkeepers = []
+# Model pro hráče
+class Player(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    skill = db.Column(db.Float, nullable=False)
 
-# === 🔄 Funkce pro uložení a načtení dat ===
-def load_data():
-    global players, goalkeepers
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-            players = data.get("players", {})
-            goalkeepers = data.get("goalkeepers", {})
+    def __repr__(self):
+        return f'<Player {self.name}>'
 
-def save_data():
-    with open(DATA_FILE, "w") as f:
-        json.dump({
-            "players": players,
-            "goalkeepers": goalkeepers
-        }, f, indent=2)
+# Model pro brankáře
+class Goalkeeper(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    skill = db.Column(db.Float, nullable=False)
 
-# === 🔧 Parsování skillu ===
-def parse_skill(value):
-    value = value.replace(",", ".")
-    try:
-        return round(float(value), 2)
-    except ValueError:
-        return None
+    def __repr__(self):
+        return f'<Goalkeeper {self.name}>'
 
-@app.route("/")
+# Funkce pro vytvoření tabulek v databázi při startu aplikace
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+# Route pro indexovou stránku
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template("index.html", players=players, goalkeepers=goalkeepers,
-                           selected_players=selected_players, selected_goalkeepers=selected_goalkeepers)
+    players = Player.query.all()  # Získáme všechny hráče z databáze
+    goalkeepers = Goalkeeper.query.all()  # Získáme všechny brankáře z databáze
 
-@app.route("/add_player", methods=["GET", "POST"])
+    if request.method == 'POST':
+        selected_players = request.form.getlist('selected_players')  # Seznam vybraných hráčů
+        selected_goalkeepers = request.form.getlist('selected_goalkeepers')  # Seznam vybraných brankářů
+
+        team1 = []
+        team2 = []
+
+        # Generování týmů
+        for player in players:
+            if player.name in selected_players:
+                if len(team1) < len(selected_players) // 2:
+                    team1.append((player.name, player.skill))
+                else:
+                    team2.append((player.name, player.skill))
+
+        for goalkeeper in goalkeepers:
+            if goalkeeper.name in selected_goalkeepers:
+                if len(team1) < len(selected_goalkeepers) // 2:
+                    team1.append((goalkeeper.name, goalkeeper.skill))
+                else:
+                    team2.append((goalkeeper.name, goalkeeper.skill))
+
+        return render_template('index.html', players=players, goalkeepers=goalkeepers, team1=team1, team2=team2)
+
+    return render_template('index.html', players=players, goalkeepers=goalkeepers)
+
+# Route pro přidání nového hráče
+@app.route('/add_player', methods=['GET', 'POST'])
 def add_player():
-    if request.method == "POST":
-        name = request.form["name"].strip()
-        skill = parse_skill(request.form["skill"])
-        role = request.form["role"]
+    if request.method == 'POST':
+        name = request.form['name']
+        skill = float(request.form['skill'])
+        role = request.form['role']
 
-        if name and skill is not None:
-            if role == "goalkeeper":
-                goalkeepers[name] = skill
-            else:
-                players[name] = skill
-            save_data()
-        return redirect(url_for("add_player"))
+        if role == 'goalkeeper':
+            new_goalkeeper = Goalkeeper(name=name, skill=skill)
+            db.session.add(new_goalkeeper)
+        else:
+            new_player = Player(name=name, skill=skill)
+            db.session.add(new_player)
 
-    return render_template("add_player.html")
+        db.session.commit()
+        return redirect(url_for('index'))
 
-@app.route("/delete/<role>/<name>", methods=["POST"])
-def delete_player(role, name):
-    if role == "player" and name in players:
-        del players[name]
-    elif role == "goalkeeper" and name in goalkeepers:
-        del goalkeepers[name]
-    save_data()
-    return redirect(url_for("index"))
+    return render_template('add_player.html')
 
-@app.route("/generate_teams", methods=["POST"])
-def generate_teams():
-    global selected_players, selected_goalkeepers
-
-    selected_players = request.form.getlist("selected_players")
-    selected_goalkeepers = request.form.getlist("selected_goalkeepers")
-
-    team1 = []
-    team2 = []
-
-    if len(selected_players) >= 2 and len(selected_goalkeepers) == 2:
-        sorted_players = sorted([(p, players[p]) for p in selected_players], key=lambda x: x[1], reverse=True)
-
-        for i, p in enumerate(sorted_players):
-            (team1 if i % 2 == 0 else team2).append(p)
-
-        team1.insert(0, (selected_goalkeepers[0], goalkeepers[selected_goalkeepers[0]]))
-        team2.insert(0, (selected_goalkeepers[1], goalkeepers[selected_goalkeepers[1]]))
-
-    return render_template("index.html", players=players, goalkeepers=goalkeepers,
-                           selected_players=selected_players, selected_goalkeepers=selected_goalkeepers,
-                           team1=team1, team2=team2)
-
-if __name__ == "__main__":
-    load_data()
+# Spuštění aplikace
+if __name__ == '__main__':
     app.run(debug=True)
