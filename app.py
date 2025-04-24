@@ -26,8 +26,8 @@ def save_data(data):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     data = load_data()
-    players = list(data["players"].keys())
-    goalkeepers = list(data["goalkeepers"].keys())
+    players = data['players']
+    goalkeepers = data['goalkeepers']
     team1 = team2 = []
 
     if request.method == 'POST':
