@@ -65,7 +65,7 @@ def index():
 
     return render_template('index.html', players=players, goalkeepers=goalkeepers)
 
-# Route pro přidání nového hráče
+# Route pro přidání nového hráče nebo brankáře
 @app.route('/add_player', methods=['GET', 'POST'])
 def add_player():
     if request.method == 'POST':
@@ -84,6 +84,21 @@ def add_player():
         return redirect(url_for('index'))
 
     return render_template('add_player.html')
+
+# Route pro smazání hráče nebo brankáře
+@app.route('/delete_player/<int:id>')
+def delete_player(id):
+    player = Player.query.get_or_404(id)
+    db.session.delete(player)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/delete_goalkeeper/<int:id>')
+def delete_goalkeeper(id):
+    goalkeeper = Goalkeeper.query.get_or_404(id)
+    db.session.delete(goalkeeper)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 # Spuštění aplikace
 if __name__ == '__main__':
