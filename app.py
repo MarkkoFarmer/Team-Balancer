@@ -60,29 +60,29 @@ def index():
 @app.route('/add_player', methods=['GET', 'POST'])
 def add_player():
     if request.method == 'POST':
-        name = request.form['name']
-        skill = int(request.form['skill'])
-
         data = load_data()
-        data['players'][name] = skill
+        for i in range(20):
+            name = request.form.get(f'player_name_{i}')
+            skill = request.form.get(f'player_skill_{i}')
+            if name and skill:
+                data['players'][name] = int(skill)
         save_data(data)
-
         return redirect(url_for('index'))
-    return render_template("add_player.html")
+    return render_template('add_player.html')
 
 
 @app.route('/add_goalkeeper', methods=['GET', 'POST'])
 def add_goalkeeper():
     if request.method == 'POST':
-        name = request.form['name']
-        skill = int(request.form['skill'])
-
         data = load_data()
-        data['goalkeepers'][name] = skill
+        for i in range(2):
+            name = request.form.get(f'gk_name_{i}')
+            skill = request.form.get(f'gk_skill_{i}')
+            if name and skill:
+                data['goalkeepers'][name] = int(skill)
         save_data(data)
-
         return redirect(url_for('index'))
-    return render_template("add_goalkeeper.html")
+    return render_template('add_goalkeeper.html')
 
 
 @app.route('/remove_player', methods=['POST'])
