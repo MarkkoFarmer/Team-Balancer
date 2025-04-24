@@ -1,165 +1,106 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
-import random
 import os
 
 app = Flask(__name__)
 
+# Paths
 DATA_FILE = 'players.json'
 
-
-def load_players():
-    if not os.path.exists(DATA_FILE):
-        return {"players": {}, "goalkeepers": {}}
-    try:
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Error loading players data: {e}")
-        return {"players": {}, "goalkeepers": {}}
+# Load or initialize JSON file
+if not os.path.exists(DATA_FILE):
+    with open(DATA_FILE, 'w') as f:
+        json.dump({"players": {}, "goalkeepers": {}}, f)
 
 
-def save_players(data):
-    try:
-        with open(DATA_FILE, 'w') as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        print(f"Error saving players data: {e}")
+def load_data():
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
 
 
-def balance_teams(players, goalkeepers):
-    all_players = list(players.items())
-    random.shuffle(all_players)
-    team1, team2 = [], []
-    skill1, skill2 = 0, 0
-
-    for name, skill in all_players:
-        if len(team1) < 10 and (skill1 <= skill2 or len(team2) >= 10):
-            team1.append((name, skill))
-            skill1 += skill
-        else:
-            team2.append((name, skill))
-            skill2 += skill
-
-    gk = list(goalkeepers.items())
-    random.shuffle(gk)
-    team1.append(("Goalkeeper: " + gk[0][0], gk[0][1]))
-    team2.append(("Goalkeeper: " + gk[1][0], gk[1][1]))
-
-    return team1, team2
+def save_data(data):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    try:
-        data = load_players()
-        players = data["players"]
-        goalkeepers = data["goalkeepers"]
-    except Exception as e:
-        print(f"Error in index route: {e}")
-        players = goalkeepers = {}
+    data = load_data()
+    players = list(data["players"].keys())
+    goalkeepers = list(data["goalkeepers"].keys())
+    team1 = team2 = []
 
-    if request.method == "POST":
-        try:
-            new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
-            new_goalies = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
+    if request.method == 'POST':
+        names = request.form.getlist("player_name")
+        skills = request.form.getlist("player_skill")
 
-            players.update(new_players)
-            goalkeepers.update(new_goalies)
-            save_players({"players": players, "goalkeepers": goalkeepers})
+        gk_names = request.form.getlist("gk_name")
+        gk_skills = request.form.getlist("gk_skill")
 
-            team1, team2 = balance_teams(players, goalkeepers)
-            return render_template("index.html", team1=team1, team2=team2, players=players, goalkeepers=goalkeepers)
-        except Exception as e:
-            print(f"Error processing form data: {e}")
-            return "Error processing the form data", 500
+        all_players = []
+        for name, skill in zip(names, skills):
+            if name and skill:
+                all_players.append((name, int(skill)))
 
-    return render_template("index.html", team1=[], team2=[], players=players, goalkeepers=goalkeepers)
+        for name, skill in zip(gk_names, gk_skills):
+            if name and skill:
+                all_players.append((name + " (GK)", int(skill)))
+
+        if len(all_players) != 22:
+            return "Please select exactly 20 players and 2 goalkeepers"
+
+        all_players.sort(key=lambda x: x[1], reverse=True)
+        team1 = all_players[::2]
+        team2 = all_players[1::2]
+
+    return render_template("index.html", players=players, goalkeepers=goalkeepers,
+                           team1=team1, team2=team2)
 
 
-@app.route("/add_player", methods=["GET", "POST"])
+@app.route('/add_player', methods=['GET', 'POST'])
 def add_player():
-    try:
-        data = load_players()
-        players = data["players"]
-        goalkeepers = data["goalkeepers"]
-    except Exception as e:
-        print(f"Error in add_player route: {e}")
-        players = goalkeepers = {}
+    if request.method == 'POST':
+        name = request.form['name']
+        skill = int(request.form['skill'])
 
-    if request.method == "POST":
-        try:
-            player_name = request.form["player_name"]
-            player_skill = int(request.form["player_skill"])
-            players[player_name] = player_skill
-            save_players({"players": players, "goalkeepers": goalkeepers})
-            return redirect(url_for("index"))
-        except Exception as e:
-            print(f"Error adding player: {e}")
-            return "Error adding the player", 500
+        data = load_data()
+        data['players'][name] = skill
+        save_data(data)
 
-    return render_template("add_player.html", players=players)
+        return redirect(url_for('index'))
+    return render_template("add_player.html")
 
 
-@app.route("/add_goalkeeper", methods=["GET", "POST"])
+@app.route('/add_goalkeeper', methods=['GET', 'POST'])
 def add_goalkeeper():
-    try:
-        data = load_players()
-        players = data["players"]
-        goalkeepers = data["goalkeepers"]
-    except Exception as e:
-        print(f"Error in add_goalkeeper route: {e}")
-        players = goalkeepers = {}
+    if request.method == 'POST':
+        name = request.form['name']
+        skill = int(request.form['skill'])
 
-    if request.method == "POST":
-        try:
-            gk_name = request.form["gk_name"]
-            gk_skill = int(request.form["gk_skill"])
-            goalkeepers[gk_name] = gk_skill
-            save_players({"players": players, "goalkeepers": goalkeepers})
-            return redirect(url_for("index"))
-        except Exception as e:
-            print(f"Error adding goalkeeper: {e}")
-            return "Error adding the goalkeeper", 500
+        data = load_data()
+        data['goalkeepers'][name] = skill
+        save_data(data)
 
-    return render_template("add_goalkeeper.html", goalkeepers=goalkeepers)
+        return redirect(url_for('index'))
+    return render_template("add_goalkeeper.html")
 
 
-@app.route("/remove_player", methods=["POST"])
+@app.route('/remove_player', methods=['POST'])
 def remove_player():
-    try:
-        data = load_players()
-        players = data["players"]
-        goalkeepers = data["goalkeepers"]
+    name = request.form['player_name']
+    data = load_data()
 
-        player_name = request.form["player_name"]
-        if player_name in players:
-            del players[player_name]
-            save_players({"players": players, "goalkeepers": goalkeepers})
+    if name in data['players']:
+        del data['players'][name]
+    elif name in data['goalkeepers']:
+        del data['goalkeepers'][name]
+    elif name.endswith(" (GK)"):
+        raw_name = name.replace(" (GK)", "")
+        data['goalkeepers'].pop(raw_name, None)
 
-        return redirect(url_for("index"))
-    except Exception as e:
-        print(f"Error removing player: {e}")
-        return "Error removing the player", 500
-
-
-@app.route("/remove_goalkeeper", methods=["POST"])
-def remove_goalkeeper():
-    try:
-        data = load_players()
-        players = data["players"]
-        goalkeepers = data["goalkeepers"]
-
-        gk_name = request.form["gk_name"]
-        if gk_name in goalkeepers:
-            del goalkeepers[gk_name]
-            save_players({"players": players, "goalkeepers": goalkeepers})
-
-        return redirect(url_for("index"))
-    except Exception as e:
-        print(f"Error removing goalkeeper: {e}")
-        return "Error removing the goalkeeper", 500
+    save_data(data)
+    return redirect(url_for('index'))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
