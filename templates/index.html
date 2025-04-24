@@ -9,12 +9,9 @@
 <div class="container">
     <h1 class="mb-4 text-center">Team Balancer</h1>
 
-    <h3>New Players</h3>
-    <input type="text" name="new_player_name" placeholder="Player Name" required>
-    <input type="number" name="new_player_skill" placeholder="Skill (1-10)" required>
-    <button type="submit">Add Player</button>
-
+    <h3>New Players & Goalkeepers</h3>
     <a href="{{ url_for('add_player') }}" class="btn btn-success mb-3">+ Add Player</a>
+    <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info mb-3">+ Add Goalkeeper</a>
 
     <form method="POST">
         <div class="row mb-4">
@@ -36,8 +33,6 @@
             </div>
             {% endfor %}
         </div>
-
-        <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info mb-3">+ Add Goalkeeper</a>
 
         <div class="row mb-4">
             <h3>Goalkeepers</h3>
