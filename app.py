@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
 # Připojení k PostgreSQL databázi (tuto URL nastavíš na Renderu)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')  # Nastavení pro Render
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://team_balancer_db_user:MPAwMpnkgJkLntBukoVJT2WeTYOJZiPa@dpg-d057kbali9vc738v21u0-a/team_balancer_db'  # Nastavení pro Render
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
