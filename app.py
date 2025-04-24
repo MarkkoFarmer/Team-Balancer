@@ -1,16 +1,34 @@
 from flask import Flask, render_template, request, redirect, url_for
-import re
+import json
+import os
 
 app = Flask(__name__)
 
+DATA_FILE = "data.json"
+
 players = {}
 goalkeepers = {}
-
 selected_players = []
 selected_goalkeepers = []
 
+# === 🔄 Funkce pro uložení a načtení dat ===
+def load_data():
+    global players, goalkeepers
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+            players = data.get("players", {})
+            goalkeepers = data.get("goalkeepers", {})
+
+def save_data():
+    with open(DATA_FILE, "w") as f:
+        json.dump({
+            "players": players,
+            "goalkeepers": goalkeepers
+        }, f, indent=2)
+
+# === 🔧 Parsování skillu ===
 def parse_skill(value):
-    # Nahradit čárku tečkou a převést na float zaokrouhlený na dvě desetinná místa
     value = value.replace(",", ".")
     try:
         return round(float(value), 2)
@@ -34,9 +52,19 @@ def add_player():
                 goalkeepers[name] = skill
             else:
                 players[name] = skill
+            save_data()
         return redirect(url_for("add_player"))
 
     return render_template("add_player.html")
+
+@app.route("/delete/<role>/<name>", methods=["POST"])
+def delete_player(role, name):
+    if role == "player" and name in players:
+        del players[name]
+    elif role == "goalkeeper" and name in goalkeepers:
+        del goalkeepers[name]
+    save_data()
+    return redirect(url_for("index"))
 
 @app.route("/generate_teams", methods=["POST"])
 def generate_teams():
@@ -62,4 +90,5 @@ def generate_teams():
                            team1=team1, team2=team2)
 
 if __name__ == "__main__":
+    load_data()
     app.run(debug=True)
