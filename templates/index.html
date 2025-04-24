@@ -1,49 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generátor týmů</title>
+    <title>Hráči a Brankáři</title>
 </head>
 <body>
-    <h1>Generování Týmů</h1>
-
-    <form method="POST">
-        <h2>Hráči</h2>
+    <h1>Seznam Hráčů a Brankářů</h1>
+    <h2>Hráči</h2>
+    <ul>
         {% for player in players %}
-            <div>
-                <input type="checkbox" name="selected_players" value="{{ player.name }}">
-                <label>{{ player.name }} (Skill: {{ "%.2f"|format(player.skill) }})</label>
-            </div>
+            <li>
+                {{ player.name }} (Skill: {{ player.skill }})
+                <a href="{{ url_for('delete_player', id=player.id) }}">Smazat</a>
+            </li>
         {% endfor %}
+    </ul>
 
-        <h2>Brankáři</h2>
+    <h2>Brankáři</h2>
+    <ul>
         {% for goalkeeper in goalkeepers %}
-            <div>
-                <input type="checkbox" name="selected_goalkeepers" value="{{ goalkeeper.name }}">
-                <label>{{ goalkeeper.name }} (Skill: {{ "%.2f"|format(goalkeeper.skill) }})</label>
-            </div>
+            <li>
+                {{ goalkeeper.name }} (Skill: {{ goalkeeper.skill }})
+                <a href="{{ url_for('delete_goalkeeper', id=goalkeeper.id) }}">Smazat</a>
+            </li>
         {% endfor %}
+    </ul>
 
-        <button type="submit">Generuj Týmy</button>
-    </form>
-
-    {% if team1 %}
-        <h2>Tým 1</h2>
-        <ul>
-            {% for player in team1 %}
-                <li>{{ player[0] }} (Skill: {{ "%.2f"|format(player[1]) }})</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {% if team2 %}
-        <h2>Tým 2</h2>
-        <ul>
-            {% for player in team2 %}
-                <li>{{ player[0] }} (Skill: {{ "%.2f"|format(player[1]) }})</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <br><a href="/add_player">Přidat Hráče/Brankáře</a>
 </body>
 </html>
