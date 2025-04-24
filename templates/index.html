@@ -11,30 +11,34 @@
 
     <h3>Add Players</h3>
     <form method="POST">
-        <div class="mb-3">
-            <label for="new_player_name" class="form-label">Player Name</label>
-            <input type="text" name="new_player_name" id="new_player_name" class="form-control" placeholder="Player Name" required>
+        <div class="row mb-3">
+            {% for i in range(20) %}
+            <div class="col-md-5 mb-2">
+                <input type="text" name="player_name" class="form-control" placeholder="Player Name" required>
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="number" name="player_skill" min="1" max="10" class="form-control" placeholder="Skill (1-10)" required>
+            </div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
-            <label for="new_player_skill" class="form-label">Skill (1-10)</label>
-            <input type="number" name="new_player_skill" id="new_player_skill" class="form-control" min="1" max="10" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Player</button>
+        <button type="submit" class="btn btn-primary">Add Players</button>
     </form>
 
     <hr>
 
     <h3>Add Goalkeepers</h3>
     <form method="POST">
-        <div class="mb-3">
-            <label for="new_gk_name" class="form-label">Goalkeeper Name</label>
-            <input type="text" name="new_gk_name" id="new_gk_name" class="form-control" placeholder="Goalkeeper Name" required>
+        <div class="row mb-3">
+            {% for i in range(2) %}
+            <div class="col-md-5 mb-2">
+                <input type="text" name="gk_name" class="form-control" placeholder="Goalkeeper Name" required>
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="number" name="gk_skill" min="1" max="10" class="form-control" placeholder="Skill (1-10)" required>
+            </div>
+            {% endfor %}
         </div>
-        <div class="mb-3">
-            <label for="new_gk_skill" class="form-label">Skill (1-10)</label>
-            <input type="number" name="new_gk_skill" id="new_gk_skill" class="form-control" min="1" max="10" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Goalkeeper</button>
+        <button type="submit" class="btn btn-primary">Add Goalkeepers</button>
     </form>
 
     <hr>
@@ -43,7 +47,7 @@
     <form method="POST">
         <div class="row mb-4">
             {% for i in range(20) %}
-            <div class="col-md-6 mb-2">
+            <div class="col-md-5 mb-2">
                 <select name="player_name" class="form-select" required>
                     <option value="">Select player</option>
                     {% for name in players %}
@@ -51,7 +55,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 mb-2">
+            <div class="col-md-3 mb-2">
                 <input type="number" name="player_skill" min="1" max="10" class="form-control" placeholder="Skill" value="{{ players[selected_player] if selected_player in players else '' }}" required>
             </div>
             {% endfor %}
@@ -60,7 +64,7 @@
         <div class="row mb-4">
             <h3>Goalkeepers</h3>
             {% for i in range(2) %}
-            <div class="col-md-6 mb-2">
+            <div class="col-md-5 mb-2">
                 <select name="gk_name" class="form-select" required>
                     <option value="">Select goalkeeper</option>
                     {% for name in goalkeepers %}
@@ -68,7 +72,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 mb-2">
+            <div class="col-md-3 mb-2">
                 <input type="number" name="gk_skill" min="1" max="10" class="form-control" placeholder="Skill" required>
             </div>
             {% endfor %}
@@ -130,5 +134,7 @@
     </div>
     {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
