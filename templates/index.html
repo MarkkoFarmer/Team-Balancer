@@ -4,98 +4,123 @@
     <meta charset="UTF-8">
     <title>Team Balancer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        select, input[type="number"] {
+            max-width: 200px;
+        }
+    </style>
 </head>
 <body class="bg-light p-5">
 <div class="container">
-    <h1 class="mb-4 text-center">Team Balancer</h1>
-
-    <h3>New Players & Goalkeepers</h3>
-    <a href="{{ url_for('add_player') }}" class="btn btn-success mb-3">+ Add Player</a>
-    <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info mb-3">+ Add Goalkeeper</a>
-
+    <h1 class="text-center mb-4">Select Players (20) and Goalkeepers (2)</h1>
     <form method="POST">
-        <div class="row mb-4">
-            <h3>Select Players (1 to 20 players)</h3>
+        <div class="row">
             {% for i in range(20) %}
-            <div class="col-md-6 mb-2">
-                <select name="player_name" class="form-select" required>
-                    <option value="">Select player or goalkeeper</option>
-                    {% for name in players %}
-                    <option value="{{ name }}">{{ name }}</option>
-                    {% endfor %}
-                    {% for name in goalkeepers %}
-                    <option value="{{ name }}">{{ name }} (Goalkeeper)</option>
+            <div class="col-md-3 mb-3 d-flex align-items-end">
+                <select class="form-select player-select" name="player_name" data-index="{{ i }}">
+                    <option value="">Select Player</option>
+                    {% for player in players %}
+                    <option value="{{ player }}">{{ player }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="col-md-2 mb-2">
-                <input type="number" name="player_skill" min="1" max="10" class="form-control" placeholder="Skill" required>
+                <input type="number" class="form-control ms-2 player-skill" name="player_skill" placeholder="Skill" min="1" max="10">
             </div>
             {% endfor %}
         </div>
 
-        <div class="row mb-4">
-            <h3>Goalkeepers</h3>
+        <h3 class="text-center mt-4 mb-3">Goalkeepers (2)</h3>
+        <div class="row">
             {% for i in range(2) %}
-            <div class="col-md-6 mb-2">
-                <select name="gk_name" class="form-select" required>
-                    <option value="">Select goalkeeper</option>
-                    {% for name in goalkeepers %}
-                    <option value="{{ name }}">{{ name }} (Goalkeeper)</option>
+            <div class="col-md-3 mb-3 d-flex align-items-end">
+                <select class="form-select gk-select" name="gk_name" data-index="{{ i }}">
+                    <option value="">Select Goalkeeper</option>
+                    {% for gk in goalkeepers %}
+                    <option value="{{ gk }}">{{ gk }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="col-md-2 mb-2">
-                <input type="number" name="gk_skill" min="1" max="10" class="form-control" placeholder="Skill" required>
+                <input type="number" class="form-control ms-2 gk-skill" name="gk_skill" placeholder="Skill" min="1" max="10">
             </div>
             {% endfor %}
         </div>
 
-        <button type="submit" class="btn btn-primary">Generate Teams</button>
-    </form>
-
-    <hr>
-
-    <h3>Remove Player</h3>
-    <form method="POST" action="{{ url_for('remove_player') }}">
-        <div class="mb-3">
-            <select name="player_name" class="form-select" required>
-                <option value="">Select player to remove</option>
-                {% for name in players %}
-                <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-                {% for name in goalkeepers %}
-                <option value="{{ name }}">{{ name }} (Goalkeeper)</option>
-                {% endfor %}
-            </select>
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">Create Teams</button>
         </div>
-        <button type="submit" class="btn btn-danger">Remove Player</button>
     </form>
 
-    {% if team1 %}
-    <div class="row mt-5">
+    <div class="mt-5 text-center">
+        <a href="{{ url_for('add_player') }}" class="btn btn-success me-2">+ Add Player</a>
+        <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info">+ Add Goalkeeper</a>
+    </div>
+
+    {% if team1 and team2 %}
+    <hr class="my-5">
+    <div class="row">
         <div class="col-md-6">
-            <h4>Team 1</h4>
+            <h3 class="text-center">Team 1</h3>
             <ul class="list-group">
-                {% for name, skill in team1 %}
+                {% for p in team1 %}
                 <li class="list-group-item d-flex justify-content-between">
-                    {{ name }} <span class="badge bg-secondary">{{ skill }}</span>
+                    {{ p[0] }} <span class="badge bg-primary">{{ p[1] }}</span>
                 </li>
                 {% endfor %}
             </ul>
         </div>
         <div class="col-md-6">
-            <h4>Team 2</h4>
+            <h3 class="text-center">Team 2</h3>
             <ul class="list-group">
-                {% for name, skill in team2 %}
+                {% for p in team2 %}
                 <li class="list-group-item d-flex justify-content-between">
-                    {{ name }} <span class="badge bg-secondary">{{ skill }}</span>
+                    {{ p[0] }} <span class="badge bg-primary">{{ p[1] }}</span>
                 </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
     {% endif %}
+
+    <hr class="my-5">
+    <h4 class="text-center">Remove Player or Goalkeeper</h4>
+    <form method="POST" action="{{ url_for('remove_player') }}" class="d-flex justify-content-center mt-3">
+        <select name="player_name" class="form-select w-25 me-2">
+            {% for p in players %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+            {% for gk in goalkeepers %}
+            <option value="{{ gk }}">{{ gk }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-danger">Remove</button>
+    </form>
 </div>
+
+<script>
+    const playerSkills = {{ players|tojson }};
+    const gkSkills = {{ goalkeepers|tojson }};
+
+    document.querySelectorAll('.player-select').forEach((select, idx) => {
+        select.addEventListener('change', (e) => {
+            const skillInput = document.querySelectorAll('.player-skill')[idx];
+            const selected = e.target.value;
+            if (selected && playerSkills[selected]) {
+                skillInput.value = playerSkills[selected];
+            } else {
+                skillInput.value = '';
+            }
+        });
+    });
+
+    document.querySelectorAll('.gk-select').forEach((select, idx) => {
+        select.addEventListener('change', (e) => {
+            const skillInput = document.querySelectorAll('.gk-skill')[idx];
+            const selected = e.target.value;
+            if (selected && gkSkills[selected]) {
+                skillInput.value = gkSkills[selected];
+            } else {
+                skillInput.value = '';
+            }
+        });
+    });
+</script>
 </body>
 </html>
