@@ -2,54 +2,32 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Přidat hráče</title>
-    <!-- Přidání Bootstrapu -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $(".skill-input").on("input", function() {
-                var value = $(this).val();
-                value = value.replace(',', '.');
-                if (!/^(\d+(\.\d{1,2})?)?$/.test(value)) {
-                    $(this).val(value.slice(0, -1)); // odstraní poslední znak
-                }
-            });
-        });
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Přidat hráče</h1>
-        <form method="POST">
-            <div class="row">
-                {% for i in range(20) %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card p-3">
-                            <h5>Hráč {{ i + 1 }}</h5>
-                            <div class="mb-3">
-                                <label for="name_{{ i }}" class="form-label">Jméno hráče:</label>
-                                <input type="text" id="name_{{ i }}" name="name_{{ i }}" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="skill_{{ i }}" class="form-label">Skill hráče:</label>
-                                <input type="text" id="skill_{{ i }}" name="skill_{{ i }}" class="form-control skill-input" required>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="d-flex justify-content-center mt-4">
-                <button type="submit" class="btn btn-primary">Uložit hráče</button>
-            </div>
-        </form>
-        <div class="d-flex justify-content-center mt-4">
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">Zpět na hlavní stránku</a>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Přidat hráče nebo brankáře</h2>
+    <form method="POST" class="mx-auto" style="max-width: 400px;">
+        <div class="mb-3">
+            <label for="name" class="form-label">Jméno</label>
+            <input type="text" name="name" class="form-control" required>
         </div>
-    </div>
-
-    <!-- Přidání JavaScriptu pro Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="mb-3">
+            <label for="skill" class="form-label">Skill (např. 7,5 nebo 7.5)</label>
+            <input type="text" name="skill" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select name="role" class="form-select" required>
+                <option value="player">Hráč</option>
+                <option value="goalkeeper">Brankář</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Přidat</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary w-100 mt-2">Zpět</a>
+    </form>
+</div>
 </body>
 </html>
