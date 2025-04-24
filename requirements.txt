@@ -1,4 +1,4 @@
-flask
+flask==2.2.2
 gunicorn
 psycopg2-binary
 flask_sqlalchemy
