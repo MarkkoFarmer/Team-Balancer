@@ -57,7 +57,7 @@ def index():
 
     if request.method == "POST":
         try:
-            # Add multiple players and goalkeepers
+            # Přidání více hráčů a brankářů
             new_players = dict(zip(request.form.getlist("player_name"), map(int, request.form.getlist("player_skill"))))
             new_goalkeepers = dict(zip(request.form.getlist("gk_name"), map(int, request.form.getlist("gk_skill"))))
 
