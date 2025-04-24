@@ -13,6 +13,11 @@
 <body class="bg-light p-5">
 <div class="container">
 
+    <div class="mt-5 text-center">
+        <a href="{{ url_for('add_player') }}" class="btn btn-success me-2">+ Add Players</a>
+        <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info">+ Add Goalkeepers</a>
+    </div>
+
     <h1 class="text-center mb-4">Select Players (20) and Goalkeepers (2)</h1>
     <form method="POST">
         <div class="row">
@@ -48,11 +53,6 @@
             <button type="submit" class="btn btn-primary">Create Teams</button>
         </div>
     </form>
-
-    <div class="mt-5 text-center">
-        <a href="{{ url_for('add_player') }}" class="btn btn-success me-2">+ Add Player</a>
-        <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info">+ Add Goalkeeper</a>
-    </div>
 
     {% if team1 and team2 %}
     <hr class="my-5">
