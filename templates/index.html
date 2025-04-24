@@ -14,6 +14,8 @@
     <input type="number" name="new_player_skill" placeholder="Skill (1-10)" required>
     <button type="submit">Add Player</button>
 
+    <a href="{{ url_for('add_player') }}" class="btn btn-success mb-3">+ Add Player</a>
+
     <form method="POST">
         <div class="row mb-4">
             <h3>Select Players (1 to 20 players)</h3>
@@ -34,6 +36,8 @@
             </div>
             {% endfor %}
         </div>
+
+        <a href="{{ url_for('add_goalkeeper') }}" class="btn btn-info mb-3">+ Add Goalkeeper</a>
 
         <div class="row mb-4">
             <h3>Goalkeepers</h3>
