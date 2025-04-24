@@ -1,119 +1,65 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-import json
-import os
-
-data_file = 'data.json'
+from flask import Flask, render_template, request, redirect, url_for
+import re
 
 app = Flask(__name__)
 
+players = {}
+goalkeepers = {}
 
-def load_data():
-    if not os.path.exists(data_file):
-        return {"players": {}, "goalkeepers": {}}
-    with open(data_file, 'r') as f:
-        return json.load(f)
+selected_players = []
+selected_goalkeepers = []
 
+def parse_skill(value):
+    # Nahradit čárku tečkou a převést na float zaokrouhlený na dvě desetinná místa
+    value = value.replace(",", ".")
+    try:
+        return round(float(value), 2)
+    except ValueError:
+        return None
 
-def save_data(data):
-    with open(data_file, 'w') as f:
-        json.dump(data, f, indent=4)
-
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/")
 def index():
-    data = load_data()
-    players_data = data["players"]
-    goalkeepers_data = data["goalkeepers"]
+    return render_template("index.html", players=players, goalkeepers=goalkeepers,
+                           selected_players=selected_players, selected_goalkeepers=selected_goalkeepers)
 
-    selected_players = request.form.getlist("player_name")
-    selected_skills = request.form.getlist("player_skill")
-    selected_gks = request.form.getlist("gk_name")
-    selected_gk_skills = request.form.getlist("gk_skill")
-
-    team1, team2 = [], []
-    error = None
-
-    if request.method == "POST":
-        if len(selected_players) != 20 or len(selected_gks) != 2:
-            error = "Please select exactly 20 players and 2 goalkeepers."
-        else:
-            players_combined = list(zip(selected_players, map(float, selected_skills)))
-            gks_combined = list(zip(selected_gks, map(float, selected_gk_skills)))
-
-            players_combined.sort(key=lambda x: x[1], reverse=True)
-            team1 = players_combined[::2]
-            team2 = players_combined[1::2]
-
-            gk1 = gks_combined[0]
-            gk2 = gks_combined[1]
-
-            team1.insert(0, gk1)
-            team2.insert(0, gk2)
-
-    return render_template("index.html", players=players_data, goalkeepers=goalkeepers_data,
-                           team1=team1, team2=team2, error=error,
-                           selected_players=selected_players, selected_skills=selected_skills,
-                           selected_gks=selected_gks, selected_gk_skills=selected_gk_skills)
-
-
-@app.route('/add_player', methods=['GET', 'POST'])
+@app.route("/add_player", methods=["GET", "POST"])
 def add_player():
-    data = load_data()
-    if request.method == 'POST':
-        for i in range(20):
-            name = request.form.get(f'name_{i}')
-            skill = request.form.get(f'skill_{i}')
-            if name and skill:
-                try:
-                    data['players'][name] = round(float(skill.replace(',', '.')), 2)
-                except ValueError:
-                    continue
-        save_data(data)
-        return redirect(url_for('index'))
-    return render_template('add_player.html')
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        skill = parse_skill(request.form["skill"])
+        role = request.form["role"]
 
+        if name and skill is not None:
+            if role == "goalkeeper":
+                goalkeepers[name] = skill
+            else:
+                players[name] = skill
+        return redirect(url_for("add_player"))
 
-@app.route('/add_goalkeeper', methods=['GET', 'POST'])
-def add_goalkeeper():
-    data = load_data()
-    if request.method == 'POST':
-        for i in range(2):
-            name = request.form.get(f'name_{i}')
-            skill = request.form.get(f'skill_{i}')
-            if name and skill:
-                try:
-                    data['goalkeepers'][name] = round(float(skill.replace(',', '.')), 2)
-                except ValueError:
-                    continue
-        save_data(data)
-        return redirect(url_for('index'))
-    return render_template('add_goalkeeper.html')
+    return render_template("add_player.html")
 
+@app.route("/generate_teams", methods=["POST"])
+def generate_teams():
+    global selected_players, selected_goalkeepers
 
-@app.route('/remove_player', methods=['POST'])
-def remove_player():
-    name = request.form.get("player_name")
-    data = load_data()
-    data['players'].pop(name, None)
-    save_data(data)
-    return redirect(url_for('index'))
+    selected_players = request.form.getlist("selected_players")
+    selected_goalkeepers = request.form.getlist("selected_goalkeepers")
 
+    team1 = []
+    team2 = []
 
-@app.route('/remove_goalkeeper', methods=['POST'])
-def remove_goalkeeper():
-    name = request.form.get("gk_name")
-    data = load_data()
-    data['goalkeepers'].pop(name, None)
-    save_data(data)
-    return redirect(url_for('index'))
+    if len(selected_players) >= 2 and len(selected_goalkeepers) == 2:
+        sorted_players = sorted([(p, players[p]) for p in selected_players], key=lambda x: x[1], reverse=True)
 
+        for i, p in enumerate(sorted_players):
+            (team1 if i % 2 == 0 else team2).append(p)
 
-@app.route('/get_skill/<player_type>/<name>')
-def get_skill(player_type, name):
-    data = load_data()
-    skill = data[player_type].get(name, "")
-    return jsonify({"skill": skill})
+        team1.insert(0, (selected_goalkeepers[0], goalkeepers[selected_goalkeepers[0]]))
+        team2.insert(0, (selected_goalkeepers[1], goalkeepers[selected_goalkeepers[1]]))
 
+    return render_template("index.html", players=players, goalkeepers=goalkeepers,
+                           selected_players=selected_players, selected_goalkeepers=selected_goalkeepers,
+                           team1=team1, team2=team2)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
